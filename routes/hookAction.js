@@ -12,15 +12,21 @@ const collection = 'hooks';
 router.post('/:id', function (request, response) {
     var object = JSON.stringify(request.body);
 
-    console.log(object);
-
-    db.get(collection, request.params.id).then(function (result) {
-        console.log(result.body);
-        response.end();
-    }).fail(function (err) {
-        console.log(err);
-    });
+    db.get(collection, request.params.id)
+        .then(function (result) {
+            sendNotifications(result.body.destinations, object);
+            response.end();
+        }).fail(function (err) {
+            console.log(err);
+        });
 });
 
+function sendNotifications(destinations, object) {
+    for (var i = 0; i < destinations.length; i++) {
+        if (destinations[i].type == "CONSOLE") {
+            console.log(object);
+        }
+    }
+}
 
 module.exports = router;

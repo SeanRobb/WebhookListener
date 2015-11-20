@@ -7,8 +7,8 @@ var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
-var hooks = require('./routes/hookConfigure');
-var action = require('./routes/hookAction');
+var hooksConfigure = require('./routes/hookConfigure');
+var hooksAction = require('./routes/hookAction');
 
 var app = express();
 
@@ -26,8 +26,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/users', users);
-app.use('/configure', hooks);
-app.use('/hook', action);
+app.use('/configure', hooksConfigure);
+app.use('/hook', hooksAction);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
