@@ -16,7 +16,7 @@ router.post('/', function (request, response) {
     var objectKey = uuid.v4();
     var body = request.body;
 
-    for (var i=0; i<body.length; i++){
+    for (var i = 0; i < body.length; i++) {
         if (!(body[i].type.toString() === "CONSOLE")) {
             response.status(500);
             response.write("Only CONSOLE type endpoints are currently supported");
@@ -28,18 +28,16 @@ router.post('/', function (request, response) {
         "destinations": request.body,
         "url": "/hook/" + objectKey
     };
+
     console.log(dbBody);
     db.put(collection, objectKey, dbBody).then(function (res) {
         console.log(res);
         response.write(objectKey);
         response.end();
     }).fail(function (err) {
-        console.log(err); // prints error
-        response.status(500);
-        response.contentType('application/json');
-        response.write(JSON.stringify(err));
-        response.end();
+        logAndRespondWithError(err);
     });
+
 });
 
 
@@ -53,45 +51,27 @@ router.get('/all/', function (request, response) {
         .then(function (result) {
             console.log(result.body.results);
             response.contentType('application/json');
-            response.write("[");
-            for (var i = 0; i < result.body.count; i++) {
-                response.write(JSON.stringify(result.body.results[i].value));
-                if (i < result.body.count -1){
-                    response.write(",");
-                }
-            }
-            response.write("]");
+            response.write(buildResponse(result.body.results));
             response.end();
         })
         .fail(function (err) {
-            console.log(err); // prints error
-            response.status(500);
-            response.contentType('application/json');
-            response.write(JSON.stringify(err));
-            response.end();
+            logAndRespondWithError(err);
         });
 
 });
 
 router.get('/:id', function (request, response) {
-    var object = JSON.stringify(request.body);
-
-    console.log(object);
+    console.log(JSON.stringify(request.body));
 
     db.get(collection, request.params.id).then(function (result) {
         console.log(result.body);
         response.contentType('application/json');
-        response.write(JSON.stringify(result.body.results));
+        response.write(JSON.stringify(result.body));
         response.end();
     }).fail(function (err) {
-        console.log(err);
-        response.status(500);
-        response.contentType('application/json');
-        response.write(JSON.stringify(err));
-        response.end();
+        logAndRespondWithError(err);
     });
 });
-
 
 router.delete('/:id', function (request, response) {
     var object = JSON.stringify(request.body);
@@ -102,12 +82,27 @@ router.delete('/:id', function (request, response) {
         console.log(result.body);
         response.end();
     }).fail(function (err) {
-        console.log(err);
-        response.status(500);
-        response.contentType('application/json');
-        response.write(JSON.stringify(err));
-        response.end();
+        logAndRespondWithError(err);
     });
 });
 
+function logAndRespondWithError(err) {
+    console.log(err);
+    response.status(500);
+    response.contentType('application/json');
+    response.write(JSON.stringify(err));
+    response.end();
+}
+
+function buildResponse(results) {
+    response = "[";
+    for (var i = 0; i < results.length; i++) {
+        response += JSON.stringify(results[i].value);
+        if (i < results.length - 1) {
+            response += ",";
+        }
+    }
+    response += "]";
+    return response;
+}
 module.exports = router;
