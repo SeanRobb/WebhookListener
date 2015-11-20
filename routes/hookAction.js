@@ -10,21 +10,26 @@ const collection = 'hooks';
 
 //This is for the actual webhook
 router.post('/:id', function (request, response) {
-    var object = JSON.stringify(request.body);
+    var object = request.body;
 
     db.get(collection, request.params.id)
         .then(function (result) {
-            sendNotifications(result.body.destinations, object);
+            notify(result.body.destinations, object);
             response.end();
         }).fail(function (err) {
             console.log(err);
         });
 });
 
-function sendNotifications(destinations, object) {
+function notify(destinations, object) {
     for (var i = 0; i < destinations.length; i++) {
-        if (destinations[i].type == "CONSOLE") {
-            console.log(object);
+        switch (destinations[i].type) {
+            case "CONSOLE":
+                console.log(JSON.stringify(object));
+                break;
+            default:
+                console.log("Did know how to notify in " + destinations[i].type + "case." +
+                    "  Misplaced object is " + JSON.stringify(object))
         }
     }
 }
