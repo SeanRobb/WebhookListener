@@ -14,15 +14,8 @@ const collection = 'hooks';
 //The endpoint location should be returned
 router.post('/', function (request, response) {
     var objectKey = uuid.v4();
-    var body = request.body;
 
-    for (var i = 0; i < body.length; i++) {
-        if (!(body[i].type.toString() === "CONSOLE")) {
-            response.status(500);
-            response.write("Only CONSOLE type endpoints are currently supported");
-            response.end();
-        }
-    }
+    destinationTypeCheck(request.body);
 
     var dbBody = {
         "destinations": request.body,
@@ -40,7 +33,6 @@ router.post('/', function (request, response) {
 
 });
 
-
 //Here is a getter for all of your endpoints
 router.get('/all/', function (request, response) {
     db.newSearchBuilder()
@@ -49,9 +41,10 @@ router.get('/all/', function (request, response) {
         .offset(0)
         .query('*')
         .then(function (result) {
-            console.log(result.body.results);
+            var results = result.body.results;
+            console.log(results);
             response.contentType('application/json');
-            response.write(buildResponse(result.body.results));
+            response.write(buildResponse(results));
             response.end();
         })
         .fail(function (err) {
@@ -78,12 +71,13 @@ router.delete('/:id', function (request, response) {
 
     console.log(object);
 
-    db.remove(collection, request.params.id).then(function (result) {
-        console.log(result.body);
-        response.end();
-    }).fail(function (err) {
-        logAndRespondWithError(err);
-    });
+    db.remove(collection, request.params.id)
+        .then(function (result) {
+            console.log(result.body);
+            response.end();
+        }).fail(function (err) {
+            logAndRespondWithError(err);
+        });
 });
 
 function logAndRespondWithError(err) {
@@ -92,6 +86,21 @@ function logAndRespondWithError(err) {
     response.contentType('application/json');
     response.write(JSON.stringify(err));
     response.end();
+}
+
+function destinationTypeCheck(destinations) {
+    for (var i = 0; i < destinations.length; i++) {
+        switch (destinations[i].type) {
+            case "CONSOLE":
+                console.log("Supported Type: "+destinations[i].type);
+                break;
+            default:
+                response.status(500);
+                response.write("Only CONSOLE type endpoints are currently supported");
+                response.end();
+                break;
+        }
+    }
 }
 
 function buildResponse(results) {
