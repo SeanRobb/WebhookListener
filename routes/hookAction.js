@@ -14,7 +14,7 @@ router.post('/:id', function (request, response) {
 
     db.get(collection, request.params.id)
         .then(function (result) {
-            notify(result.body.destinations, object);
+            notify(result.body.destinations.destinations, object);
             response.end();
         }).fail(function (err) {
             console.log(err);
@@ -25,7 +25,11 @@ function notify(destinations, object) {
     for (var i = 0; i < destinations.length; i++) {
         switch (destinations[i].type) {
             case "CONSOLE":
-                console.log(JSON.stringify(object));
+                var message = destinations[i].format.message;
+                for (var key in object) {
+                    message = message.replace("${" + key + "}", object[key]);
+                }
+                console.log(message);
                 break;
             default:
                 console.log("Did know how to notify in " + destinations[i].type + "case." +

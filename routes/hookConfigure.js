@@ -23,13 +23,14 @@ router.post('/', function (request, response) {
     };
 
     console.log(dbBody);
-    db.put(collection, objectKey, dbBody).then(function (res) {
-        console.log(res);
-        response.write(objectKey);
-        response.end();
-    }).fail(function (err) {
-        logAndRespondWithError(err);
-    });
+    db.put(collection, objectKey, dbBody)
+        .then(function (res) {
+            console.log(res);
+            response.write(objectKey);
+            response.end();
+        }).fail(function (err) {
+            logAndRespondWithError(err);
+        });
 
 });
 
@@ -92,7 +93,7 @@ function destinationTypeCheck(destinations) {
     for (var i = 0; i < destinations.length; i++) {
         switch (destinations[i].type) {
             case "CONSOLE":
-                console.log("Supported Type: "+destinations[i].type);
+                console.log("Supported Type: " + destinations[i].type);
                 break;
             default:
                 response.status(500);
