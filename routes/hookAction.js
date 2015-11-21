@@ -6,8 +6,11 @@ var oio = require('orchestrate');
 oio.ApiEndPoint = apiEndPoint;
 var db = oio(apiKey);
 var Type = require("type-of-is");
+var request = require('request');
+var fs = require('fs');
+var util = require('util');
 
-
+const settingsKey = "settings";
 const collection = 'hooks';
 
 //This is for the actual webhook
@@ -27,12 +30,25 @@ function notify(destinations, object) {
     for (var index = 0; index < destinations.length; index++) {
         switch (destinations[index].type) {
             case "CONSOLE":
-                console.log(buildMessage(object, "", destinations[index].format.message));
+                console.log(buildMessage(object, "", destinations[index][settingsKey].messageFormat));
                 break;
             case "CUSTOM WEBHOOK":
-                var test = buildMessage(object, "", destinations[index].format.message)
+                var jsonObject = JSON.parse(buildMessage(object, "", JSON.stringify(destinations[index][settingsKey].webhook)));
+                request({
+                    url: destinations[index][settingsKey].url,
+                    method: "POST",
+                    json: true,
+                    body: jsonObject
+                }, function (error, response, body) {
+                    console.log(response);
+                });
+                break;
+            case "FILE":
+                var log_file = fs.createWriteStream(destinations[index][settingsKey].file, {flags : 'w'});
+                log_file.write(util.format(buildMessage(object, "", destinations[index][settingsKey].messageFormat)) + '\n');
+                break;
             default:
-                console.log("Did know how to notify in " + destinations[index].type + "case." +
+                console.log("Did not know how to notify in " + destinations[index].type + " case." +
                     "  Misplaced object is " + JSON.stringify(object))
         }
     }

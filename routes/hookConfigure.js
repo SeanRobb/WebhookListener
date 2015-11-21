@@ -91,6 +91,9 @@ function destinationTypeCheck(destinations) {
             case "CUSTOM WEBHOOK":
                 console.log("Supported Type: " + destinations[i].type);
                 break;
+            case "FILE":
+                console.log("Supported Type: " + destinations[i].type);
+                break;
             default:
                 response.status(500);
                 response.write("Only CONSOLE or CUSTOM WEBHOOK type endpoints are currently supported");
