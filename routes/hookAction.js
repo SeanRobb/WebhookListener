@@ -26,30 +26,23 @@ router.post('/:id', function (request, response) {
         });
 });
 
+
 function notify(destinations, object) {
     for (var index = 0; index < destinations.length; index++) {
+        var currentDestinationSettings = destinations[index][settingsKey];
         switch (destinations[index].type) {
             case "CONSOLE":
-                console.log(buildMessage(object, "", destinations[index][settingsKey].messageFormat));
+                sendToConsole(object, currentDestinationSettings);
                 break;
             case "CUSTOM WEBHOOK":
-                var jsonObject = JSON.parse(buildMessage(object, "", JSON.stringify(destinations[index][settingsKey].webhook)));
-                request({
-                    url: destinations[index][settingsKey].url,
-                    method: "POST",
-                    json: true,
-                    body: jsonObject
-                }, function (error, response, body) {
-                    console.log(response);
-                });
+                sendCustomWebhook(object, currentDestinationSettings);
                 break;
             case "FILE":
-                var log_file = fs.createWriteStream(destinations[index][settingsKey].file, {flags : 'w'});
-                log_file.write(util.format(buildMessage(object, "", destinations[index][settingsKey].messageFormat)) + '\n');
+                sendToFile(object, currentDestinationSettings);
                 break;
             default:
-                console.log("Did not know how to notify in " + destinations[index].type + " case." +
-                    "  Misplaced object is " + JSON.stringify(object))
+                failedToNotifyWithType(object,destinations[index].type);
+                break;
         }
     }
 }
@@ -79,6 +72,37 @@ function buildKey(keyPrefix, key) {
         return key;
     }
     return keyPrefix + "." + key;
+}
+
+function sendCustomWebhook(object, currentDestinationSettings) {
+    var jsonObject = JSON.parse(buildMessage(object, "", JSON.stringify(currentDestinationSettings.webhook)));
+    request({
+        url: currentDestinationSettings.url,
+        method: "POST",
+        json: true,
+        body: jsonObject
+    }, function (error, response, body) {
+        console.log(response);
+    });
+}
+function sendToFile(object, currentDestinationSettings) {
+    fs.access(currentDestinationSettings.file, fs.W_OK, function (err) {
+        console.log(err ? 'can not write' : 'can write');
+    });
+    fs.appendFile(currentDestinationSettings.file, util.format(
+            buildMessage(object, "", currentDestinationSettings.messageFormat)) + '\n',
+        function (err) {
+            if (err) {
+                console.log('The "data to append" was appended to file!');
+            }
+        });
+}
+function sendToConsole(object, currentDestinationSettings) {
+    console.log(buildMessage(object, "", currentDestinationSettings.messageFormat));
+}
+function failedToNotifyWithType(object,type) {
+    console.log("Did not know how to notify in " + type + " case." +
+        "  Misplaced object is " + JSON.stringify(object));
 }
 
 module.exports = router;
