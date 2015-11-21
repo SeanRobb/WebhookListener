@@ -47,37 +47,30 @@ router.get('/all/', function (request, response) {
             response.contentType('application/json');
             response.write(buildResponse(results));
             response.end();
-        })
-        .fail(function (err) {
-            logAndRespondWithError(err);
+        }).fail(function(err){
+            logAndRespondWithError(err)
         });
-
 });
 
 router.get('/:id', function (request, response) {
-    console.log(JSON.stringify(request.body));
-
-    db.get(collection, request.params.id).then(function (result) {
-        console.log(result.body);
-        response.contentType('application/json');
-        response.write(JSON.stringify(result.body));
-        response.end();
-    }).fail(function (err) {
-        logAndRespondWithError(err);
-    });
+    db.get(collection, request.params.id)
+        .then(function (result) {
+            console.log(result.body);
+            response.contentType('application/json');
+            response.write(JSON.stringify(result.body));
+            response.end();
+        }).fail(function(err){
+            logAndRespondWithError(err)
+        });
 });
 
 router.delete('/:id', function (request, response) {
-    var object = JSON.stringify(request.body);
-
-    console.log(object);
-
     db.remove(collection, request.params.id)
         .then(function (result) {
             console.log(result.body);
             response.end();
-        }).fail(function (err) {
-            logAndRespondWithError(err);
+        }).fail(function(err){
+            logAndRespondWithError(err)
         });
 });
 
@@ -95,9 +88,12 @@ function destinationTypeCheck(destinations) {
             case "CONSOLE":
                 console.log("Supported Type: " + destinations[i].type);
                 break;
+            case "CUSTOM WEBHOOK":
+                console.log("Supported Type: " + destinations[i].type);
+                break;
             default:
                 response.status(500);
-                response.write("Only CONSOLE type endpoints are currently supported");
+                response.write("Only CONSOLE or CUSTOM WEBHOOK type endpoints are currently supported");
                 response.end();
                 break;
         }
